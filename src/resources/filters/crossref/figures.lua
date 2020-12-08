@@ -5,7 +5,8 @@
 function figures()
   return {
     Div = function(el)
-      if isFigureDiv(el) then
+      local requires = crossrefRequires(el)
+      if isFigureDiv(el, requires) then
         local caption = figureDivCaption(el)
         processFigure(el, caption.content)
       end
@@ -13,9 +14,12 @@ function figures()
     end,
 
     Para = function(el)
-      local image = figureFromPara(el)
-      if image and isFigureImage(image) then
-        processFigure(image, image.caption)
+      local image = figureFromPara(el, { label = false, caption = false })
+      if image then
+        local requires = crossrefRequires(image)
+        if isFigureImage(image, requires) then
+          processFigure(image, image.caption)
+        end
       end
       return el
     end
@@ -43,11 +47,14 @@ function processFigure(el, captionContent)
    
     -- if this isn't latex output, then prepend the subfigure number
     if not isLatexOutput() then
+      if inlinesToString(captionContent) == "" then
+        tclear(captionContent)
+      end
       tprepend(captionContent, { pandoc.Str(")"), pandoc.Space() })
       tprepend(captionContent, subfigNumber(order))
       captionContent:insert(1, pandoc.Str("("))
     end
-   
+
   else
     order = indexNextOrder("fig")
     if not isLatexOutput() then
@@ -57,9 +64,19 @@ function processFigure(el, captionContent)
 
   -- update the index
   indexAddEntry(label, parent, order, caption)
+  
 end
 
 
 function figureTitlePrefix(order)
   return titlePrefix("fig", "Figure", order)
 end
+
+function crossrefRequires(el)
+  return {
+    label = true,
+    caption =  el.attr.attributes["figure-parent"] == nil
+  }
+end
+
+

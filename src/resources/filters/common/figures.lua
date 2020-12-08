@@ -5,16 +5,25 @@
 -- converts linked image figures into figure divs. we do this in a separate 
 -- pass b/c normal filters go depth first so we can't actually
 -- "see" our parent figure during filtering.
-function preprocessFigures(captionRequired)
+function preprocessFigures(explicitOnly)
 
   return {
     Pandoc = function(doc)
       local walkFigures
       walkFigures = function(parentId)
         
+        local requires = {
+          label = explicitOnly,
+          caption = explicitOnly
+        }
+        if parentId ~= nil then
+          requires.caption = false
+        end
+        
         return {
           Div = function(el)
-            if isFigureDiv(el, captionRequired) then
+           
+            if isFigureDiv(el, requires) then
             
               if parentId ~= nil then
                 el.attr.attributes["figure-parent"] = parentId
@@ -31,15 +40,21 @@ function preprocessFigures(captionRequired)
           end,
 
           Para = function(el)
-            return preprocessParaFigure(el, parentId, captionRequired)
+            return preprocessParaFigure(el, parentId, requires)
           end
         }
       end
 
+      -- set up requires
+      local requires = {
+        label = explicitOnly,
+        caption = explicitOnly
+      }
+
       -- walk all blocks in the document
       for i,el in pairs(doc.blocks) do
         local parentId = nil
-        if isFigureDiv(el, captionRequired) then
+        if isFigureDiv(el, requires) then
           parentId = el.attr.identifier
           -- provide default caption if need be
           if figureDivCaption(el) == nil then
@@ -47,7 +62,7 @@ function preprocessFigures(captionRequired)
           end
         end
         if el.t == "Para" then
-          doc.blocks[i] = preprocessParaFigure(el, nil, captionRequired)
+          doc.blocks[i] = preprocessParaFigure(el, nil, requires)
         else
           doc.blocks[i] = pandoc.walk_block(el, walkFigures(parentId))
         end
@@ -59,12 +74,12 @@ function preprocessFigures(captionRequired)
   }
 end
 
-function preprocessParaFigure(el, parentId, captionRequired)
+function preprocessParaFigure(el, parentId, requires)
   
   -- if this is a figure paragraph, tag the image inside with any
   -- parent id we have and insert a "fake" caption
-  local image = figureFromPara(el, captionRequired)
-  if image and isFigureImage(image, captionRequired) then
+  local image = figureFromPara(el, requires)
+  if image and isFigureImage(image, requires) then
     image.attr.attributes["figure-parent"] = parentId
     if #image.caption == 0 then
       image.caption:insert(pandoc.Str(""))
@@ -74,8 +89,8 @@ function preprocessParaFigure(el, parentId, captionRequired)
   
   -- if this is a linked figure paragraph, transform to figure-div
   -- and then transfer attributes to the figure-div as appropriate
-  local linkedFig = linkedFigureFromPara(el, captionRequired)
-  if linkedFig and isFigureImage(linkedFig, captionRequired) then
+  local linkedFig = linkedFigureFromPara(el, requires)
+  if linkedFig and isFigureImage(linkedFig, requires) then
     
     -- create figure div
     return createFigureDiv(el, linkedFig, parentId)
@@ -138,32 +153,36 @@ function isSubfigure(el)
 end
 
 -- is this a Div containing a figure
-function isFigureDiv(el, captionRequired)
-  if captionRequired == nil then
-    captionRequired = true
-  end
-  if el.t == "Div" and hasFigureLabel(el) then
-    return not captionRequired or figureDivCaption(el) ~= nil
+function isFigureDiv(el, requires)
+  requires = requiresParam(requires)
+  if el.t == "Div" then 
+    if requires.label and not hasFigureLabel(el) then
+      return false
+    elseif requires.caption and figureDivCaption(el) == nil then
+      return false
+    else
+      return true
+    end
   else
     return false
   end
 end
 
 -- is this an image containing a figure
-function isFigureImage(el, captionRequired)
-  if captionRequired == nil then
-    captionRequired = true
-  end
-  if hasFigureLabel(el) then
-    return not captionRequired or #el.caption > 0
-  else
+function isFigureImage(el, requires)
+  requires = requiresParam(requires)
+  if requires.label and not hasFigureLabel(el) then
     return false
+  elseif requires.caption and #el.caption == 0 then
+    return false
+  else
+    return true
   end
 end
 
 -- does this element have a figure label?
 function hasFigureLabel(el)
-  return string.match(el.attr.identifier, "^fig:")
+  return string.find(el.attr.identifier, "^fig:")
 end
 
 function figureDivCaption(el)
@@ -179,13 +198,11 @@ function figureDivCaption(el)
   end
 end
 
-function figureFromPara(el, captionRequired)
-  if captionRequired == nil then
-    captionRequired = true
-  end
+function figureFromPara(el, requires)
+  requires = requiresParam(requires)
   if #el.content == 1 and el.content[1].t == "Image" then
     local image = el.content[1]
-    if not captionRequired or #image.caption > 0 then
+    if not requires.caption or (#image.caption > 0) then
       return image
     else
       return nil
@@ -195,20 +212,30 @@ function figureFromPara(el, captionRequired)
   end
 end
 
-function linkedFigureFromPara(el, captionRequired)
-  if captionRequired == nil then
-    captionRequired = true
-  end
+function linkedFigureFromPara(el, requires)
+  requires = requiresParam(requires)
   if #el.content == 1 and el.content[1].t == "Link" then
     local link = el.content[1]
     if #link.content == 1 and link.content[1].t == "Image" then
       local image = link.content[1]
-      if not captionRequired or #image.caption > 0 then
+      if not requires.caption or (#image.caption > 0) then
         return image
       end
     end
   end
   return nil
+end
+
+--- process requires arg
+function requiresParam(requires)
+  if not requires then
+    return {
+      label = true,
+      caption = true
+    }
+  else
+    return requires
+  end
 end
 
 

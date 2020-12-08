@@ -96,7 +96,8 @@ function layoutSubfigures(divEl)
 end
 
 function collectSubfigures(divEl)
-  if isFigureDiv(divEl, false) then
+  
+  if isFigureDiv(divEl, { label = true, caption = false }) then
     local subfigures = pandoc.List:new()
     pandoc.walk_block(divEl, {
       Div = function(el)
@@ -106,7 +107,7 @@ function collectSubfigures(divEl)
         end
       end,
       Para = function(el)
-        local image = figureFromPara(el, false)
+        local image = figureFromPara(el, { label = false, caption = false })
         if image and isSubfigure(image) then
           subfigures:insert(image)
           image.attr.attributes["figure-parent"] = nil
