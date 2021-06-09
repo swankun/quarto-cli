@@ -247,11 +247,11 @@ export function watchProject(
 
   // watch project dir recursively
   const watcher = Deno.watchFs(project.dir, { recursive: true });
-  const watchForChanges = () => {
-    watcher.next().then(async (iter) => {
+  const watchForChanges = async () => {
+    for await (const event of watcher) {
       try {
         // see if we need to handle this
-        const result = handleWatchEvent(iter.value);
+        const result = handleWatchEvent(event);
         if (result) {
           await reloadClients(result === "config");
         }
@@ -260,7 +260,7 @@ export function watchProject(
       } finally {
         watchForChanges();
       }
-    });
+    }
   };
   watchForChanges();
 
