@@ -183,7 +183,7 @@ export function executionEngineKeepFiles(
   const files: string[] = [];
 
   // FIXME we don't have access to the keepMd option here so this one is likely wrong.
-  const keep = executionEngineKeepMd(input);
+  const keep = executionEngineKeepMd(input, undefined);
   if (keep) {
     files.push(keep);
   }
