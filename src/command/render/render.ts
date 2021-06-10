@@ -33,6 +33,8 @@ import {
 } from "../../core/path.ts";
 import { warnOnce } from "../../core/log.ts";
 
+import { performanceEnd, performanceMark } from "../../core/performance.ts";
+
 import {
   formatFromMetadata,
   includedMetadata,
@@ -151,6 +153,7 @@ export async function render(
   options: RenderOptions,
 ): Promise<RenderResult> {
   // determine target context/files
+  performanceMark("context");
   const context = await projectContext(path);
 
   if (Deno.statSync(path).isDirectory) {
@@ -173,6 +176,7 @@ export async function render(
   }
 
   // otherwise it's just a file render
+  performanceMark("render");
   const result = await renderFiles([path], options);
   return {
     files: result.files.map((result) => {
@@ -241,6 +245,7 @@ export async function renderFiles(
       }
 
       // get contexts
+      performanceMark("contexts");
       const contexts = await renderContexts(
         file,
         options,
@@ -262,6 +267,7 @@ export async function renderFiles(
         );
 
         // execute
+        performanceMark("execute");
         const executeResult = await renderExecute(
           context,
           recipe.output,
@@ -438,6 +444,7 @@ export async function renderExecute(
   removeIfExists(figsDir);
 
   // execute computations
+  console.log(performanceEnd());
   const executeResult = await context.engine.execute({
     target: context.target,
     resourceDir: resourcePath(),

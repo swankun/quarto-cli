@@ -27,11 +27,15 @@ import { execProcess } from "./core/process.ts";
 import { binaryPath } from "./core/resources.ts";
 
 import { parse } from "flags/mod.ts";
+import { performanceMark, performanceStart } from "./core/performance.ts";
 
 export async function quarto(
   args: string[],
   cmdHandler?: (command: Command) => Command,
 ) {
+  performanceStart();
+  performanceMark("init");
+
   // passthrough to pandoc
   if (args[0] === "pandoc") {
     return (await execProcess({
