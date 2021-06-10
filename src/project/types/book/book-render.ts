@@ -18,6 +18,7 @@ import {
   kAuthor,
   kDate,
   kDescription,
+  kKeepMd,
   kNumberSections,
   kOutputExt,
   kOutputFile,
@@ -450,7 +451,10 @@ function cleanupExecutedFile(
     finalOutput,
     file.recipe.format,
     file.executeResult.supporting,
-    executionEngineKeepMd(file.context.target.input),
+    executionEngineKeepMd(
+      file.context.target.input,
+      file.recipe.format.execute[kKeepMd],
+    ),
   );
 }
 

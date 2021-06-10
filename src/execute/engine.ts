@@ -148,10 +148,29 @@ export function executionEngine(name: string) {
   }
 }
 
-export function executionEngineKeepMd(input: string) {
+export function executionEngineKeepMd(
+  input: string,
+  keepMd: (boolean | string | undefined),
+): (string | undefined) {
   const keepSuffix = `.md`;
+  let filename: string;
+
+  // the logic here is a little strange, but since the goal of
+  // executionEngineKeepMd is to create the filename rather than
+  // decide on whether or not to actually keep the md file, this
+  // function behaves the same if keepMd is a boolean or undefined and
+  // only does something different if keepMd is a string
+
+  if (keepMd === false || keepMd === true || keepMd === undefined) {
+    filename = input;
+  } else {
+    // keepMd is a string, we take that to mean the desired file name
+    filename = keepMd;
+  }
+  console.log("executionEngineKeepMd", { input, keepMd, filename });
+
   if (!input.endsWith(keepSuffix)) {
-    const [dir, stem] = dirAndStem(input);
+    const [dir, stem] = dirAndStem(filename);
     return join(dir, stem + keepSuffix);
   }
 }
@@ -162,6 +181,8 @@ export function executionEngineKeepFiles(
 ) {
   // standard keepMd
   const files: string[] = [];
+
+  // FIXME we don't have access to the keepMd option here so this one is likely wrong.
   const keep = executionEngineKeepMd(input);
   if (keep) {
     files.push(keep);

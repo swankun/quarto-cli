@@ -451,7 +451,10 @@ export async function renderExecute(
   });
 
   // keep md if requested
-  const keepMd = executionEngineKeepMd(context.target.input);
+  const keepMd = executionEngineKeepMd(
+    context.target.input,
+    context.format.execute[kKeepMd] as (string | boolean),
+  );
   if (keepMd && context.format.execute[kKeepMd]) {
     Deno.writeTextFileSync(keepMd, executeResult.markdown);
   }
@@ -602,7 +605,7 @@ export async function renderPandoc(
     finalOutput,
     format,
     selfContained ? executeResult.supporting : undefined,
-    executionEngineKeepMd(context.target.input),
+    executionEngineKeepMd(context.target.input, format.execute[kKeepMd]),
   );
 
   // determine if we have a files dir

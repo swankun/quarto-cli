@@ -206,7 +206,7 @@ export interface FormatExecute {
   [kOutput]?: boolean;
   [kWarning]?: boolean;
   [kInclude]?: boolean;
-  [kKeepMd]?: boolean;
+  [kKeepMd]?: boolean | string;
   [kKeepIpynb]?: boolean;
 }
 
