@@ -17,7 +17,7 @@ import { render, RenderResult, renderResultFinalOutput } from "./render.ts";
 export const renderCommand = new Command()
   .name("render")
   .stopEarly()
-  .arguments("[input:string] [...args]")
+  .arguments("<input:string> [...args]")
   .description(
     "Render input file(s) to various document types.",
   )
@@ -97,6 +97,19 @@ export const renderCommand = new Command()
   .action(async (options: any, input?: string, args?: string[]) => {
     args = args || [];
 
+    // if there are leading 'args' that don't start with '-' then
+    // they are actually part of the input
+    const firstArgPos = args.findIndex((arg) => arg.startsWith("-"));
+    if (input && firstArgPos !== 0) {
+      if (firstArgPos === -1) {
+        input = input + " " + args.join(" ");
+        args.splice(0, args.length);
+      } else {
+        input = input + " " + args.slice(0, firstArgPos).join(" ");
+        args = args.slice(firstArgPos);
+      }
+    }
+
     // if an option got defined then this was mis-parsed as an 'option'
     // rather than an 'arg' because no input was passed. reshuffle
     // things to make them work
@@ -114,33 +127,22 @@ export const renderCommand = new Command()
       delete options[option];
     }
 
-    // pull inputs out of the beginning of flags
-    input = input || ".";
-    const inputs = [input];
-    const firstPandocArg = args.findIndex((arg) => arg.startsWith("-"));
-    if (firstPandocArg !== -1) {
-      inputs.push(...args.slice(0, firstPandocArg));
-      args = args.slice(firstPandocArg);
-    }
-
     // extract pandoc flag values we know/care about, then fixup args as
     // necessary (remove our flags that pandoc doesn't know about)
     const flags = parseRenderFlags(args);
     args = fixupPandocArgs(args, flags);
 
     // run render on input files
-
     let renderResult: RenderResult | undefined;
-    for (const input of inputs) {
-      for (const walk of expandGlobSync(input)) {
-        const input = relative(Deno.cwd(), walk.path) || ".";
-        renderResult = await render(input, { flags, pandocArgs: args });
-        // check for error
-        if (renderResult.error) {
-          throw renderResult.error;
-        }
+    for (const walk of expandGlobSync(input || ".")) {
+      const input = relative(Deno.cwd(), walk.path) || ".";
+      renderResult = await render(input, { flags, pandocArgs: args });
+      // check for error
+      if (renderResult.error) {
+        throw renderResult.error;
       }
     }
+
     if (renderResult) {
       // report output created
       if (!options.flags?.quiet && options.flags?.output !== kStdOut) {
