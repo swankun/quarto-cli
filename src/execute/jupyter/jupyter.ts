@@ -64,6 +64,7 @@ import {
 } from "../../core/jupyter/widgets.ts";
 
 import { RenderOptions } from "../../command/render/render.ts";
+import { kMdExtensions } from "../markdown.ts";
 
 const kJupyterEngine = "jupyter";
 
@@ -76,7 +77,8 @@ export const jupyterEngine: ExecutionEngine = {
     `jupyter: ${kernel || "python3"}`,
   ],
 
-  validExtensions: () => kJupyterNotebookExtensions.concat(kQmdExtensions),
+  validExtensions: () =>
+    kJupyterNotebookExtensions.concat(kQmdExtensions, kMdExtensions),
 
   claimsExtension: (ext: string) => {
     return kJupyterNotebookExtensions.includes(ext.toLowerCase());
@@ -295,7 +297,12 @@ export const jupyterEngine: ExecutionEngine = {
 
 function isQmdFile(file: string) {
   const ext = extname(file);
-  return kQmdExtensions.includes(ext);
+  return kQmdExtensions.includes(ext) || isMdFile(file);
+}
+
+function isMdFile(file: string) {
+  const ext = extname(file);
+  return kMdExtensions.includes(ext);
 }
 
 async function metadataFromInputFile(file: string) {

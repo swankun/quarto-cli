@@ -24,9 +24,11 @@ export function renderCleanup(
   keepMd?: string,
 ) {
   // cleanup md if necessary
+  /*
   if (keepMd && !format.execute[kKeepMd] && keepMd !== output) {
     removeIfExists(keepMd);
   }
+  */
 
   // if we aren't keeping the markdown or text and we are instructed to
   // clean supporting files then do it
