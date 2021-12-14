@@ -24,8 +24,9 @@
     "deno_dom/": "https://deno.land/x/deno_dom@v0.1.14-alpha/",
     "media_types/": "https://deno.land/x/media_types@v2.10.1/",
       
-    "acorn/walk": "https://cdn.skypack.dev/acorn-walk@7.2.0",
-    "acorn/acorn": "https://cdn.skypack.dev/acorn@7.4.1",
+    "acorn/walk": "./core/lib/external/acornjs/walk.js",
+    "acorn/acorn": "./core/lib/external/acornjs/acorn.js",
+      
     "ajv": "https://cdn.skypack.dev/ajv",
     "binary-search-bounds": "https://cdn.skypack.dev/binary-search-bounds",
     "blueimpMd5": "https://cdn.skypack.dev/blueimp-md5",
