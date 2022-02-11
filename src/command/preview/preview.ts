@@ -56,6 +56,7 @@ interface PreviewOptions {
   browse: boolean;
   presentation: boolean;
   watchInputs: boolean;
+  shutdownOnBeacon: boolean;
 }
 
 export async function preview(
@@ -93,6 +94,8 @@ export async function preview(
     options.watchInputs,
   );
 
+  const shutdownHandler = createShutdownHandler(options.shutdownOnBeacon);
+
   // create file request handler (hook clients up to reloader, provide
   // function to be used if a render request comes in)
   const handler = isPdfContent(result.outputFile)
@@ -117,6 +120,7 @@ export async function preview(
       result.format,
       reloader,
       changeHandler.render,
+      shutdownHandler.shutdown,
     );
 
   // open browser if requested
@@ -143,6 +147,10 @@ export async function preview(
       for await (const { request, respondWith } of Deno.serveHttp(conn)) {
         try {
           await respondWith(handler(request));
+          if (shutdownHandler.mustShutdown) {
+            // this is pretty drastic...
+            Deno.exit(0);
+          }
         } catch (err) {
           warning(err.message);
         }
@@ -222,6 +230,24 @@ async function renderForPreview(
     outputFile: join(dirname(file), finalOutput),
     resourceFiles,
   };
+}
+
+interface ShutdownHandler {
+  mustShutdown: boolean;
+  shutdown: () => void;
+}
+
+function createShutdownHandler(shutdownOnBeacon: boolean): ShutdownHandler {
+  const result = {
+    mustShutdown: false,
+    shutdown: () => {
+      if (shutdownOnBeacon) {
+        console.log("Shutdown signal received.");
+        result.mustShutdown = true;
+      }
+    },
+  };
+  return result;
 }
 
 interface ChangeHandler {
@@ -386,6 +412,7 @@ function htmlFileRequestHandler(
   format: Format,
   reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
+  shutdownHandler?: () => void,
 ) {
   return httpFileRequestHandler(
     htmlFileRequestHandlerOptions(
@@ -395,6 +422,7 @@ function htmlFileRequestHandler(
       format,
       reloader,
       renderHandler,
+      shutdownHandler,
     ),
   );
 }
@@ -406,6 +434,7 @@ function htmlFileRequestHandlerOptions(
   format: Format,
   reloader: HttpDevServer,
   renderHandler: () => Promise<void>,
+  shutdownHandler?: () => void,
 ): HttpFileRequestOptions {
   return {
     baseDir,
@@ -414,6 +443,11 @@ function htmlFileRequestHandlerOptions(
     onRequest: (req: Request) => {
       if (reloader.handle(req)) {
         return Promise.resolve(reloader.connect(req));
+      } else if (req.url.endsWith("/quarto-shutdown/")) {
+        if (shutdownHandler) {
+          shutdownHandler();
+        }
+        return Promise.resolve(httpContentResponse("shutdown"));
       } else if (req.url.endsWith("/quarto-render/")) {
         // don't wait for the promise so the
         // caller gets an immediate reply

@@ -22,7 +22,10 @@ import {
 import { isRStudio } from "../../core/platform.ts";
 import { createTempContext } from "../../core/temp.ts";
 
-import { setInitializer, initState } from "../../core/lib/yaml-validation/state.ts";
+import {
+  initState,
+  setInitializer,
+} from "../../core/lib/yaml-validation/state.ts";
 import { initPrecompiledModules } from "../../core/lib/yaml-validation/deno-init-precompiled-modules.ts";
 
 export const previewCommand = new Command()
@@ -80,6 +83,13 @@ export const previewCommand = new Command()
   .option(
     "--no-watch-inputs",
     "Do not re-render input files when they change.",
+  )
+  .option(
+    "--shutdown-on-beacon",
+    "Listen for a shutdown request from webpage preview.",
+    {
+      hidden: true,
+    },
   )
   .arguments("[file:string] [...args:string]")
   .description(
@@ -198,6 +208,12 @@ export const previewCommand = new Command()
       args.splice(noRenderPos, 1);
     }
 
+    const shutdownOnBeacon = args.indexOf("--shutdown-on-beacon");
+    if (shutdownOnBeacon !== -1) {
+      options.shutdownOnBeacon = true;
+      args.splice(shutdownOnBeacon, 1);
+    }
+
     // default watch-inputs if not specified
     if (options.watchInputs === undefined) {
       options.watchInputs = !isRStudio();
@@ -249,6 +265,7 @@ export const previewCommand = new Command()
         browse: !!(options.browser && options.browse),
         presentation: options.presentation,
         watchInputs: !!options.watchInputs,
+        shutdownOnBeacon: !!options.shutdownOnBeacon,
       });
     }
   });
