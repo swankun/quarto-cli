@@ -7,43 +7,55 @@
 *
 */
 
-// @deno-types="@types/lodash";
+// @deno-types="../resources/typings/lodash/cloneDeep.d.ts";
 import ld_cloneDeep from "lodash/cloneDeep";
-// @deno-types="@types/lodash";
+
+// @deno-types="../resources/typings/lodash/debounce.d.ts";
 import ld_debounce from "lodash/debounce";
-// @deno-types="@types/lodash";
+
+// @deno-types="../resources/typings/lodash/difference.d.ts";
 import ld_difference from "lodash/difference";
-// @deno-types="@types/lodash";
-import ld_each from "lodash/each";
-// @deno-types="@types/lodash";
-import ld_forEach from "lodash/forEach";
-// @deno-types="@types/lodash";
-import ld_isArray from "lodash/isArray";
-// @deno-types="@types/lodash";
-import ld_mergeWith from "lodash/mergeWith";
-// @deno-types="@types/lodash";
-import ld_shuffle from "lodash/shuffle";
-// @deno-types="@types/lodash";
-import ld_template from "lodash/template";
-// @deno-types="@types/lodash";
-import ld_toString from "lodash/toString";
-// @deno-types="@types/lodash";
-import ld_uniq from "lodash/uniq";
-// @deno-types="@types/lodash";
-import ld_uniqBy from "lodash/uniqBy";
-// @deno-types="@types/lodash";
-import ld_isObject from "lodash/isObject";
-// @deno-types="@types/lodash";
-import ld_isEqual from "lodash/isEqual";
-// @deno-types="@types/lodash";
-import ld_orderBy from "lodash/orderBy";
-// @deno-types="@types/lodash";
+
+// @deno-types="../resources/typings/lodash/escape.d.ts";
 import ld_escape from "lodash/escape";
+
+// @deno-types="../resources/typings/lodash/forEach.d.ts";
+import ld_forEach from "lodash/forEach";
+
+// @deno-types="../resources/typings/lodash/isArray.d.ts";
+import ld_isArray from "lodash/isArray";
+
+// @deno-types="../resources/typings/lodash/mergeWith.d.ts";
+import ld_mergeWith from "lodash/mergeWith";
+
+// @deno-types="../resources/typings/lodash/shuffle.d.ts";
+import ld_shuffle from "lodash/shuffle";
+
+// @deno-types="../resources/typings/lodash/template.d.ts";
+import ld_template from "lodash/template";
+
+// @deno-types="../resources/typings/lodash/toString.d.ts";
+import ld_toString from "lodash/toString";
+
+// @deno-types="../resources/typings/lodash/uniq.d.ts";
+import ld_uniq from "lodash/uniq";
+
+// @deno-types="../resources/typings/lodash/uniqBy.d.ts";
+import ld_uniqBy from "lodash/uniqBy";
+
+// @deno-types="../resources/typings/lodash/isObject.d.ts";
+import ld_isObject from "lodash/isObject";
+
+// @deno-types="../resources/typings/lodash/isEqual.d.ts";
+import ld_isEqual from "lodash/isEqual";
+
+// @deno-types="../resources/typings/lodash/orderBy.d.ts";
+import ld_orderBy from "lodash/orderBy";
 
 export const cloneDeep = ld_cloneDeep;
 export const debounce = ld_debounce;
 export const difference = ld_difference;
-export const each = ld_each;
+export const each = ld_forEach;
 export const forEach = ld_forEach;
 export const isArray = ld_isArray;
 export const mergeWith = ld_mergeWith;

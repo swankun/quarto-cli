@@ -154,7 +154,10 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   // navbar
   if (navbar) {
     navigation.navbar = await navbarEjsData(project, navbar);
-    navigation.navbar = resolveNavReferences(navigation.navbar) as Navbar;
+    navigation.navbar =
+      (resolveNavReferences(
+        (navigation.navbar as unknown) as Record<string, unknown>,
+      ) as unknown) as Navbar;
   } else {
     navigation.navbar = undefined;
   }
@@ -1191,9 +1194,11 @@ function isExternalPath(path: string) {
   return /^\w+:/.test(path);
 }
 
-function resolveNavReferences(
-  collection: unknown | Array<unknown> | Record<string, unknown>,
-) {
+function resolveNavReferences<
+  T extends (undefined | Array<unknown> | Record<string, unknown>),
+>(
+  collection: T,
+): T {
   if (!collection) {
     return collection;
   }

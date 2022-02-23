@@ -391,7 +391,7 @@ function processCssIntoExtras(
 
     // Don't include duplicate variables
     extras.html[kQuartoCssVariables] = uniqBy(
-      extras.html[kQuartoCssVariables],
+      extras.html[kQuartoCssVariables]!,
       (val: string) => {
         return val;
       },

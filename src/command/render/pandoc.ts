@@ -526,7 +526,7 @@ export async function runPandoc(
     isLatexOutput(options.format.pandoc) &&
     !isBeamerOutput(options.format.pandoc)
   ) {
-    const docClass = pandocMetadata[kDocumentClass];
+    const docClass = pandocMetadata[kDocumentClass] as (string | undefined);
     const isPrintDocumentClass = docClass &&
       ["book", "scrbook"].includes(docClass);
 

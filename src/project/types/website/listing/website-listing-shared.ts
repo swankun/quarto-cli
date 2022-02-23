@@ -88,6 +88,8 @@ export interface ListingDescriptor {
 export interface ListingDehydrated extends Record<string, unknown> {
   id: string;
   type: ListingType;
+  [kSortUi]?: boolean;
+  [kFilterUi]?: boolean;
   contents: Array<string | Metadata>; // globs (or items)
 }
 

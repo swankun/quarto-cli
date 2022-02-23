@@ -330,8 +330,9 @@ function hydrateListing(
     [kFieldFilter]: hydratedFields,
     [kFieldRequired]: kDefaultFieldRequired,
     [kPageSize]: defaultPageSize(),
-    [kFilterUi]: listing.type !== ListingType.Custom || listing[kFilterUi],
-    [kSortUi]: listing.type !== ListingType.Custom || listing[kSortUi],
+    [kFilterUi]: listing.type !== ListingType.Custom || listing[kFilterUi] ||
+      false,
+    [kSortUi]: listing.type !== ListingType.Custom || listing[kSortUi] || false,
     ...listing,
   });
 
