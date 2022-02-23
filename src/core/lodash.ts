@@ -7,21 +7,37 @@
 *
 */
 
+// @deno-types="@types/lodash";
 import ld_cloneDeep from "lodash/cloneDeep";
+// @deno-types="@types/lodash";
 import ld_debounce from "lodash/debounce";
+// @deno-types="@types/lodash";
 import ld_difference from "lodash/difference";
+// @deno-types="@types/lodash";
 import ld_each from "lodash/each";
+// @deno-types="@types/lodash";
 import ld_forEach from "lodash/forEach";
+// @deno-types="@types/lodash";
 import ld_isArray from "lodash/isArray";
+// @deno-types="@types/lodash";
 import ld_mergeWith from "lodash/mergeWith";
+// @deno-types="@types/lodash";
 import ld_shuffle from "lodash/shuffle";
+// @deno-types="@types/lodash";
 import ld_template from "lodash/template";
+// @deno-types="@types/lodash";
 import ld_toString from "lodash/toString";
+// @deno-types="@types/lodash";
 import ld_uniq from "lodash/uniq";
+// @deno-types="@types/lodash";
 import ld_uniqBy from "lodash/uniqBy";
+// @deno-types="@types/lodash";
 import ld_isObject from "lodash/isObject";
+// @deno-types="@types/lodash";
 import ld_isEqual from "lodash/isEqual";
+// @deno-types="@types/lodash";
 import ld_orderBy from "lodash/orderBy";
+// @deno-types="@types/lodash";
 import ld_escape from "lodash/escape";
 
 export const cloneDeep = ld_cloneDeep;
