@@ -12,6 +12,11 @@ import { lineOffsets, lines } from "./text.ts";
 import { Range, rangedLines, RangedSubstring } from "./ranged-text.ts";
 import { MappedString, mappedString } from "./mapped-text.ts";
 
+// @deno-types="@types/commonmark";
+import { Node } from "commonmark";
+
+import { parseMarkdown } from "./commonmark.ts";
+
 import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
 
 export interface CodeCellType {
@@ -44,6 +49,159 @@ export interface QuartoMdCell {
 
 export interface QuartoMdChunks {
   cells: QuartoMdCell[];
+}
+
+// deno-lint-ignore require-await
+export async function breakQuartoMdNew(
+  src: MappedString,
+  validate = false,
+) {
+  const nb: QuartoMdChunks = {
+    cells: [],
+  };
+
+  let parse: Node | null = parseMarkdown(src)?.firstChild || null;
+  const originalParse: Node | null = parse;
+  if (originalParse === null) {
+    return nb;
+  }
+
+  debugger;
+
+  const startCodeCellRegEx = new RegExp(
+    "^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$",
+  );
+
+  const offsets = Array.from(lineOffsets(src.value));
+  const srcLines = lines(src.value);
+
+  const sourceposStartToOffset = (pos: [number, number]) =>
+    offsets[pos[0] - 1] + pos[1] - 1;
+  const sourceposEndToOffset = (pos: [number, number]) =>
+    // + 1 = -1 + 1 + 1;
+    // -1 because pos is one-indexed;
+    // +1 because commonmark returns closed interval
+    // +1 because commonmark doesn't return the newline and we want to capture it.
+    offsets[pos[0] - 1] + pos[1] + 1;
+
+  type ParseState = "start" | "markdown" | "chunk";
+
+  let state: ParseState = "start";
+
+  const toYamlChunk = (node: Node): QuartoMdCell => {
+    const source = mappedString(src, [{
+      start: sourceposStartToOffset(node.sourcepos[0]),
+      end: sourceposEndToOffset(node.sourcepos[1]),
+    }]);
+    const nodeType = node.type as string;
+    if (nodeType !== "yaml_block") {
+      throw new Error("Internal Error: expected a YAML block");
+    }
+    return {
+      cell_type: "raw",
+      source,
+      sourceOffset: 0,
+      sourceStartLine: 0,
+      sourceVerbatim: source,
+      cellStartLine: node.sourcepos[0][0] - 1,
+    };
+  };
+  const toCodeChunk = async (node: Node): Promise<QuartoMdCell> => {
+    const m = srcLines[node.sourcepos[0][0] - 1].match(startCodeCellRegEx);
+    if (m === null) {
+      throw new Error("Internal Error: should have recognized a code chunk");
+    }
+    const language = m[1];
+    const chunkStartLine = node.sourcepos[0][0] - 1;
+    const chunkEndLine = node.sourcepos[1][0] - 1;
+    let source = mappedString(src, [{
+      start: sourceposStartToOffset(node.sourcepos[0]),
+      end: sourceposEndToOffset(node.sourcepos[1]),
+    }]);
+    source = mappedString(source, [{
+      start: offsets[chunkStartLine + 1] - offsets[chunkStartLine],
+      end: offsets[chunkEndLine] - offsets[chunkStartLine],
+    }]);
+
+    const { yaml, source: resultSource, sourceStartLine } =
+      await partitionCellOptionsMapped(
+        language,
+        source,
+        validate,
+      );
+
+    return {
+      cell_type: { language },
+      source: resultSource,
+      options: yaml,
+      sourceOffset: offsets[chunkStartLine + 1] - offsets[chunkStartLine],
+      sourceStartLine,
+      sourceVerbatim: source,
+      cellStartLine: node.sourcepos[0][0] - 1,
+    };
+  };
+  const toMarkdownChunk = (nodeStart: Node, nodeEnd: Node): QuartoMdCell => {
+    const source = mappedString(src, [{
+      start: sourceposStartToOffset(nodeStart.sourcepos[0]),
+      end: sourceposEndToOffset(nodeEnd.sourcepos[1]),
+    }]);
+    return {
+      cell_type: "markdown",
+      source,
+      sourceOffset: 0,
+      sourceStartLine: 0,
+      sourceVerbatim: source,
+      cellStartLine: nodeStart.sourcepos[0][0] - 1,
+    };
+  };
+
+  let cellBlockStartNode: Node;
+  while (parse !== null) {
+    const node: Node | null = parse;
+    const nodeType = node.type as string; // we upcast to string to catch the "yaml_block" hack from commonmark.ts
+
+    switch (state) {
+      case "start":
+        if (nodeType === "yaml_block") {
+          nb.cells.push(toYamlChunk(node));
+        } else if (nodeType === "code_block") {
+          nb.cells.push(await toCodeChunk(node));
+        } else {
+          cellBlockStartNode = node;
+          state = "markdown";
+        }
+        break;
+      case "markdown":
+        if (nodeType === "yaml_block") {
+          nb.cells.push(toMarkdownChunk(cellBlockStartNode!, parse.prev!));
+          nb.cells.push(toYamlChunk(node));
+          state = "start";
+        } else if (
+          nodeType === "code_block" &&
+          srcLines[node.sourcepos[0][0] - 1].match(startCodeCellRegEx)
+        ) {
+          nb.cells.push(toMarkdownChunk(cellBlockStartNode!, parse.prev!));
+          nb.cells.push(await toCodeChunk(node));
+          state = "start";
+        }
+        break;
+    }
+    parse = node.next;
+
+    // 'text' |'softbreak' | 'linebreak' | 'emph' | 'strong' | 'html_inline' | 'link' | 'image' | 'code' | 'document' | 'paragraph' |
+    // 'block_quote' | 'item' | 'list' | 'heading' | 'code_block' | 'html_block' | 'thematic_break' | 'custom_inline' | 'custom_block';
+
+    /*  switch (nodeType) {
+    }
+    parse = parse.next;
+ */
+  }
+  if (state === "markdown") {
+    nb.cells.push(
+      toMarkdownChunk(cellBlockStartNode!, originalParse.lastChild!),
+    );
+  }
+  return nb;
 }
 
 export async function breakQuartoMd(
