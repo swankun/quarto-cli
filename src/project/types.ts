@@ -7,7 +7,7 @@
 
 import { PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
-import { TempContext } from "../core/temp.ts";
+import { TempContext } from "../core/temp-types.ts";
 
 export const kProjectType = "type";
 export const kProjectRender = "render";

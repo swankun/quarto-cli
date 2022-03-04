@@ -7,8 +7,8 @@
 *
 */
 
-import { MappedString } from "../mapped-text.ts";
-import { ErrorLocation, TidyverseError } from "../errors.ts";
+import { MappedString } from "../mapped-text-types.ts";
+import { ErrorLocation, TidyverseError } from "../errors-types.ts";
 
 // https://github.com/microsoft/TypeScript/issues/1897#issuecomment-822032151
 export type JSONValue =

@@ -6,7 +6,7 @@
 */
 
 import { Schema } from "../yaml-schema/types.ts";
-import { MappedString } from "../mapped-text.ts";
+import { MappedString } from "../mapped-text-types.ts";
 
 export type AutomationKind = "validation" | "completions";
 

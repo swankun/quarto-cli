@@ -1,14 +1,16 @@
 /*
-* format-error.ts
+* errors.ts
 *
 * functions that help format errors consistently
 *
-* Copyright (C) 2021 by RStudio, PBC
+* Copyright (C) 2022 by RStudio, PBC
 *
 */
 
 import * as colors from "./external/colors.ts";
 import { MappedString } from "./mapped-text.ts";
+import { ErrorLocation, TidyverseError } from "./errors-types.ts";
+export type { ErrorLocation, TidyverseError } from "./errors-types.ts";
 
 // tidyverse error message styling
 // https://style.tidyverse.org/error-messages.html
@@ -46,26 +48,6 @@ export function tidyverseError(msg: string) {
   } else {
     return `${colors.red("x")} ${msg}`;
   }
-}
-
-export interface ErrorLocation {
-  start: {
-    line: number;
-    column: number;
-  };
-  end: {
-    line: number;
-    column: number;
-  };
-}
-
-export interface TidyverseError {
-  heading: string;
-  error: string[];
-  info: Record<string, string>; // use tag for infos to only display one error of each tag
-  fileName?: string;
-  location?: ErrorLocation;
-  sourceContext?: string;
 }
 
 export function tidyverseFormatError(msg: TidyverseError): string {
