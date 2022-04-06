@@ -4,8 +4,8 @@
 function theorems()
 
   local types = theoremTypes
-
   return {
+
     Div = function(el)
 
       local type = refType(el.attr.identifier)
@@ -119,6 +119,21 @@ function theorems()
             if #el.content > 0 and #el.content[1].content > 0 then
               el.content[1].content:insert(1, span)
             end
+
+            local floatVal = "right"
+            if option("dir", "dir-unset") == "rtl" then
+              floatVal = "left"
+            end
+
+
+            el.content:insert(
+              pandoc.RawBlock("openxml", 
+              "<w:pPr><w:r><w:t>Hello</w:t></w:r></w:pPr>"))
+
+            --el.content[#el.content].content:insert(
+            --  pandoc.RawInline("html", 
+            --  "<span class='with-clearfix' style='float: " .. 
+            --  floatVal .. "'>∎</span>"))
           end
 
         end

@@ -9,7 +9,7 @@ text = require 'text'
 
 -- global crossref state
 crossref = {
-  usingTheorems = false
+  usingTheorems = false,
 }
 
 -- [import]
