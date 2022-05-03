@@ -314,6 +314,9 @@ $endif$
 $if(mathjax)$
           RevealMath,
 $endif$
+          $for(plugins)$
+          $plugins$,
+          $endfor$
           RevealNotes,
           RevealSearch,
           RevealZoom
